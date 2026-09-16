@@ -97,7 +97,7 @@ export const enUI = {
     "solubilityGrade": "Reference",
     "solubilityTag": "Grid",
     "virtualLabName": "Virtual Lab",
-    "virtualLabDesc": "Mix a curated element sample with water in a 4D reaction view with depth, heat, gas, progress, and time controls."
+    "virtualLabDesc": "Explore all 118 elements in a realistic 4D lab, with curated water reactions, material colors, heat, gas, depth, and time controls."
   },
   "worksheet": {
     "title": "Worksheet Generator",
@@ -713,7 +713,7 @@ export const enUI = {
     "metalTitle": "The Metal Sample",
     "metalDesc": "Grab the sample and drop it below the water surface. The model shows reaction rate, gas evolution, sample consumption, and heat over time.",
     "elementPickerTitle": "Change Element",
-    "elementPickerDesc": "Compare curated alkali and alkaline-earth metals. This is an educational model, not a safety guide or an instruction to reproduce the reaction.",
+    "elementPickerDesc": "Search all 118 elements by name, symbol, or atomic number. Green dots mark curated cold-water models; other elements stay in clearly labeled reference mode.",
     "thermoTitle": "Thermometer",
     "thermoDesc": "Watch the temperature spike during exothermic reactions as heat is released!"
   },
