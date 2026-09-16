@@ -1159,7 +1159,9 @@ function generateVirtualLabToolContent() {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: linear-gradient(165deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.02) 100%);
+                background:
+                    radial-gradient(circle at 72% 18%, rgba(255,255,255,0.96) 0 9%, transparent 30%),
+                    linear-gradient(180deg, #e8f1f4 0 55%, #b9c9cd 55.2%, #d8e1e0 100%);
                 border-radius: 20px;
                 box-sizing: border-box;
                 overflow: hidden;
@@ -1179,12 +1181,12 @@ function generateVirtualLabToolContent() {
                 inset: 46% -12% -24%;
                 z-index: 0;
                 pointer-events: none;
-                opacity: 0.42;
+                opacity: 0.58;
                 transform: rotateX(64deg) translateZ(-70px);
                 transform-origin: center top;
                 background:
-                    linear-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(99, 102, 241, 0.12) 1px, transparent 1px);
+                    linear-gradient(rgba(66, 82, 88, 0.13) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(66, 82, 88, 0.13) 1px, transparent 1px);
                 background-size: 30px 30px;
                 mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 82%);
                 -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 82%);
@@ -1206,10 +1208,12 @@ function generateVirtualLabToolContent() {
                 height: 14px;
                 box-sizing: border-box;
                 border-radius: 4px;
-                background: linear-gradient(180deg, #b07e54, #8b5a2b);
+                background:
+                    linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 18%, transparent 38%),
+                    linear-gradient(180deg, #a87345, #6f421f);
                 border: 2px solid #5c3a18;
                 border-top: 1px solid #d4a373;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+                box-shadow: 0 8px 12px rgba(44,30,20,0.26), inset 0 2px 0 rgba(255,255,255,0.22);
                 z-index: 5;
                 transition: opacity 0.3s ease;
                 will-change: transform;
@@ -1244,14 +1248,60 @@ function generateVirtualLabToolContent() {
                 height: 46px;
                 box-sizing: border-box;
                 border-radius: 8px;
-                background: #b0b5bc;
-                border: 1px solid #9da3ab;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                background: linear-gradient(145deg, #eef2f5 0%, #8d959d 72%, #4b5563 100%);
+                border: 1px solid rgba(55,65,81,0.48);
+                box-shadow:
+                    inset 7px 7px 10px rgba(255,255,255,0.44),
+                    inset -7px -7px 12px rgba(15,23,42,0.2),
+                    0 9px 14px rgba(15,23,42,0.24);
                 cursor: grab;
                 touch-action: none;
                 user-select: none;
                 z-index: 10;
                 will-change: transform;
+            }
+
+            .virtual-lab-metal-cube small,
+            .virtual-lab-metal-cube em {
+                position: absolute;
+                font-style: normal;
+                font-weight: 700;
+                line-height: 1;
+            }
+
+            .virtual-lab-metal-cube small {
+                top: 5px;
+                left: 6px;
+                font-size: 7px;
+                opacity: 0.76;
+            }
+
+            .virtual-lab-metal-cube span {
+                font-size: 18px;
+                font-weight: 850;
+            }
+
+            .virtual-lab-metal-cube em {
+                right: 5px;
+                bottom: 5px;
+                max-width: 34px;
+                overflow: hidden;
+                font-size: 6px;
+                letter-spacing: 0.03em;
+                text-overflow: ellipsis;
+                text-transform: uppercase;
+                white-space: nowrap;
+                opacity: 0.72;
+            }
+
+            .virtual-lab-metal-cube[data-phase="gas"] {
+                border-radius: 50%;
+                box-shadow: 0 0 24px rgba(99,102,241,0.3), inset 0 0 16px rgba(255,255,255,0.55);
+            }
+
+            .virtual-lab-metal-cube[data-phase="liquid"] {
+                border-radius: 50% 50% 48% 52% / 64% 64% 36% 36%;
+                box-shadow: 0 10px 18px rgba(15,23,42,0.18), inset 6px 5px 10px rgba(255,255,255,0.45);
             }
 
             .virtual-lab-metal-cube:active {
@@ -1293,10 +1343,41 @@ function generateVirtualLabToolContent() {
                 top: 20px;
                 bottom: 10px;
                 border-radius: 0 0 30px 30px;
-                border-left: 3px solid rgba(212, 220, 232, 0.95);
-                border-right: 3px solid rgba(212, 220, 232, 0.95);
-                border-bottom: 3px solid rgba(212, 220, 232, 0.95);
-                background: transparent;
+                border-left: 4px solid rgba(203, 220, 226, 0.82);
+                border-right: 4px solid rgba(168, 194, 204, 0.82);
+                border-bottom: 5px solid rgba(148, 177, 187, 0.9);
+                background:
+                    linear-gradient(100deg, rgba(255,255,255,0.52), transparent 19% 76%, rgba(255,255,255,0.28)),
+                    rgba(224,242,247,0.12);
+                box-shadow:
+                    inset 10px 0 18px rgba(255,255,255,0.25),
+                    inset -8px 0 14px rgba(90,124,138,0.08),
+                    0 14px 24px rgba(49,78,88,0.16);
+            }
+
+            .virtual-lab-beaker-body::before {
+                content: '';
+                position: absolute;
+                left: -8px;
+                right: -8px;
+                top: -4px;
+                height: 8px;
+                border: 3px solid rgba(178,202,211,0.82);
+                border-radius: 50%;
+                background: rgba(241,250,252,0.42);
+                box-shadow: inset 0 2px 2px rgba(255,255,255,0.8);
+            }
+
+            .virtual-lab-beaker-body::after {
+                content: '';
+                position: absolute;
+                left: 12px;
+                top: 16px;
+                bottom: 28px;
+                width: 5px;
+                border-radius: 999px;
+                background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.08));
+                pointer-events: none;
             }
 
             .virtual-lab-fluid-mask {
@@ -1320,8 +1401,8 @@ function generateVirtualLabToolContent() {
             .virtual-lab-particle {
                 position: absolute;
                 border-radius: 999px;
-                background: #4da6ff;
-                box-shadow: 0 2px 7px rgba(30, 64, 175, 0.18);
+                background: #65bde4;
+                box-shadow: inset 1px 1px 2px rgba(255,255,255,0.48), 0 2px 7px rgba(12, 74, 110, 0.2);
                 will-change: transform;
             }
 
@@ -1442,19 +1523,20 @@ function generateVirtualLabToolContent() {
             .virtual-lab-element-picker {
                 position: absolute;
                 z-index: 100;
-                min-width: 160px;
-                max-height: 320px;
-                overflow-y: auto;
+                max-width: calc(100% - 20px);
+                max-height: 390px;
+                overflow: hidden;
                 background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,248,250,0.95) 100%);
                 backdrop-filter: blur(20px) saturate(180%);
                 -webkit-backdrop-filter: blur(20px) saturate(180%);
                 border-radius: 14px;
                 border: 1px solid rgba(0,0,0,0.08);
                 box-shadow: 0 14px 38px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.08);
-                padding: 6px;
+                padding: 12px;
                 display: none;
                 flex-direction: column;
-                gap: 2px;
+                gap: 9px;
+                box-sizing: border-box;
             }
 
             .virtual-lab-element-picker.open {
@@ -1467,57 +1549,131 @@ function generateVirtualLabToolContent() {
                 to { opacity: 1; transform: translateY(0) scale(1); }
             }
 
-            .virtual-lab-picker-group {
-                padding: 6px 10px 4px;
-                font-size: 10px;
-                font-weight: 700;
-                color: #86868b;
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
+            .virtual-lab-picker-search {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                align-items: center;
+                gap: 10px;
+                color: #334155;
+                font-size: 11px;
+                font-weight: 750;
+            }
+
+            .virtual-lab-picker-search input {
+                min-width: 0;
+                padding: 8px 10px;
+                border: 1px solid rgba(148,163,184,0.35);
+                border-radius: 9px;
+                outline: none;
+                background: rgba(248,250,252,0.9);
+                color: #1e293b;
+                font: inherit;
+                font-weight: 550;
+            }
+
+            .virtual-lab-picker-search input:focus {
+                border-color: #818cf8;
+                box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+            }
+
+            .virtual-lab-picker-legend {
+                display: flex;
+                justify-content: space-between;
+                gap: 8px;
+                color: #64748b;
+                font-size: 9px;
+            }
+
+            .virtual-lab-picker-legend i {
+                display: inline-block;
+                width: 6px;
+                height: 6px;
+                margin-right: 3px;
+                border-radius: 50%;
+                background: #10b981;
+            }
+
+            .virtual-lab-picker-grid {
+                display: grid;
+                grid-template-columns: repeat(10, minmax(0, 1fr));
+                gap: 5px;
+                padding-right: 3px;
+                overflow-y: auto;
+                overscroll-behavior: contain;
             }
 
             .virtual-lab-picker-item {
-                display: flex;
-                align-items: center;
-                gap: 10px;
+                position: relative;
+                display: grid;
+                place-items: center;
+                gap: 1px;
                 width: 100%;
-                padding: 8px 10px;
-                border: none;
+                min-height: 48px;
+                padding: 5px 2px 4px;
+                border: 1px solid rgba(148,163,184,0.18);
                 border-radius: 9px;
-                background: none;
-                text-align: left;
-                font-size: 13px;
-                font-weight: 550;
+                background: rgba(248,250,252,0.82);
+                text-align: center;
                 color: #2f3136;
                 cursor: pointer;
-                transition: background 0.15s ease;
+                transition: 0.15s ease;
                 font-family: inherit;
             }
 
             .virtual-lab-picker-item:hover {
-                background: rgba(0,0,0,0.055);
+                z-index: 2;
+                border-color: rgba(99,102,241,0.32);
+                background: #fff;
+                box-shadow: 0 5px 14px rgba(15,23,42,0.12);
+                transform: translateY(-2px) scale(1.03);
             }
 
             .virtual-lab-picker-item.active {
-                background: rgba(0,0,0,0.09);
-                font-weight: 650;
+                border-color: #6366f1;
+                background: #eef2ff;
+                box-shadow: inset 0 0 0 1px #6366f1;
             }
 
-            .virtual-lab-picker-sym {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 28px;
-                height: 28px;
-                border-radius: 7px;
-                font-size: 13px;
+            .virtual-lab-picker-item strong {
+                font-size: 14px;
+                line-height: 1;
+            }
+
+            .virtual-lab-picker-item small {
+                width: 100%;
+                overflow: hidden;
+                color: #64748b;
+                font-size: 6px;
+                line-height: 1.2;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .virtual-lab-picker-item > i {
+                position: absolute;
+                right: 4px;
+                bottom: 3px;
+                color: #10b981;
+                font-size: 6px;
+                font-style: normal;
+            }
+
+            .virtual-lab-picker-number {
+                position: absolute;
+                top: 3px;
+                left: 4px;
+                color: #94a3b8;
+                font-size: 6px;
                 font-weight: 700;
-                flex-shrink: 0;
-                color: white;
             }
 
-            .virtual-lab-element-picker::-webkit-scrollbar {
-                display: none;
+            .virtual-lab-picker-grid::-webkit-scrollbar {
+                width: 5px;
+            }
+
+            .virtual-lab-picker-grid::-webkit-scrollbar-thumb {
+                border-radius: 999px;
+                background: rgba(100,116,139,0.3);
             }
 
             .virtual-lab-thermometer {
@@ -1813,6 +1969,12 @@ function generateVirtualLabToolContent() {
             }
 
             @media (max-width: 720px) {
+                .virtual-lab-picker-search {
+                    grid-template-columns: 1fr;
+                }
+                .virtual-lab-picker-grid {
+                    grid-template-columns: repeat(6, minmax(0, 1fr));
+                }
                 .virtual-lab-4d-hud {
                     top: 10px;
                     right: 10px;

@@ -1086,7 +1086,7 @@ function startVirtualLabTour(driver, tutorialKey, delayMs = 800) {
                     element: '#virtual-lab-change-element-btn',
                     popover: {
                         title: t('virtualLabTutorial.elementPickerTitle', 'Change Element'),
-                        description: t('virtualLabTutorial.elementPickerDesc', 'Compare curated alkali and alkaline-earth metals. This is an educational model, not a safety guide or an instruction to reproduce the reaction.'),
+                        description: t('virtualLabTutorial.elementPickerDesc', 'Search all 118 elements by name, symbol, or atomic number. Green dots mark curated cold-water models; other elements stay in clearly labeled reference mode.'),
                         side: 'top',
                         align: 'center'
                     }

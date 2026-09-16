@@ -11,6 +11,7 @@ import {
 import { formatReactionError } from "./equationBalancer.js";
 import { predictReaction } from "./reactionPredictor.js";
 import { t } from "./langController.js";
+import { finallyData } from "../data/elementsData.js";
 
 const TOOL_LISTENER_MAP = {
   balancer: attachBalancerListeners,
@@ -892,27 +893,48 @@ function attachVirtualLabListeners() {
     totalDrag: 0,
   };
 
-  // Metal elements data
-  const METAL_ELEMENTS = [
-    { group: "Alkali Metal", elements: [
-      { sym: "Li", name: "Lithium", color: "#e85d5d" },
-      { sym: "Na", name: "Sodium", color: "#e85d5d" },
-      { sym: "K", name: "Potassium", color: "#e85d5d" },
-      { sym: "Rb", name: "Rubidium", color: "#e85d5d" },
-      { sym: "Cs", name: "Caesium", color: "#e85d5d" },
-      { sym: "Fr", name: "Francium", color: "#e85d5d" },
-    ]},
-    { group: "Alkaline Earth Metal", elements: [
-      { sym: "Be", name: "Beryllium", color: "#e8a14d" },
-      { sym: "Mg", name: "Magnesium", color: "#e8a14d" },
-      { sym: "Ca", name: "Calcium", color: "#e8a14d" },
-      { sym: "Sr", name: "Strontium", color: "#e8a14d" },
-      { sym: "Ba", name: "Barium", color: "#e8a14d" },
-      { sym: "Ra", name: "Radium", color: "#e8a14d" },
-    ]},
-  ];
+  const FAMILY_COLORS = {
+    "Alkali Metal": "#ef6b63",
+    "Alkaline Earth Metal": "#e7a04b",
+    "Transition Metal": "#d7a82f",
+    "Post-transition Metal": "#7997c8",
+    Metalloid: "#5f9f8d",
+    Halogen: "#9aaa34",
+    "Noble Gas": "#8a70d6",
+    "Other nonmetal": "#70a45f",
+    Lanthanide: "#c88768",
+    Actinide: "#cb7683",
+  };
+  const SAMPLE_MATERIALS = {
+    C: ["#17191d", "#4b5563"],
+    S: ["#eab308", "#fde047"],
+    Cu: ["#9a4f2b", "#e39a66"],
+    Au: ["#a66b08", "#ffd76a"],
+    Ag: ["#9ca3af", "#f8fafc"],
+    Br: ["#7c2d12", "#c2410c"],
+    Cl: ["#65a30d", "#bef264"],
+    I: ["#4c1d95", "#a78bfa"],
+    Hg: ["#64748b", "#e2e8f0"],
+  };
+  const PERIODIC_ELEMENTS = Object.values(finallyData)
+    .map((element) => {
+      const category = element.level1_basic?.type || "Unknown";
+      const familyColor = FAMILY_COLORS[category] || "#64748b";
+      const [materialDark, materialLight] = SAMPLE_MATERIALS[element.symbol]
+        || ["#6b7280", "#d7dce2"];
+      return {
+        atomicNumber: element.id,
+        sym: element.symbol,
+        name: element.name,
+        category,
+        phase: element.level1_basic?.phaseAtSTP || "Unknown",
+        color: familyColor,
+        material: `linear-gradient(145deg, ${materialLight} 0%, ${materialDark} 72%, #374151 100%)`,
+      };
+    })
+    .sort((a, b) => a.atomicNumber - b.atomicNumber);
 
-  let selectedElement = METAL_ELEMENTS[0].elements[1]; // Na by default
+  let selectedElement = PERIODIC_ELEMENTS.find((element) => element.sym === "Na");
 
   // ===== Reaction Data: Metal + Water reactions =====
   // rate = fraction of cube consumed per frame (higher = faster reaction)
@@ -934,7 +956,23 @@ function attachVirtualLabListeners() {
     Sr:  { rate: 0.00040, heat: 35, bubbleRate: 0.55, waterColor: 'rgba(225,230,235,0.40)', eq: 'Sr + 2H₂O → Sr(OH)₂ + H₂↑' },
     Ba:  { rate: 0.00060, heat: 50, bubbleRate: 0.70, waterColor: 'rgba(220,225,235,0.45)', eq: 'Ba + 2H₂O → Ba(OH)₂ + H₂↑' },
     Ra:  { rate: 0.00080, heat: 60, bubbleRate: 0.80, waterColor: 'rgba(215,220,230,0.50)', eq: 'Ra + 2H₂O → Ra(OH)₂ + H₂↑' },
+    // Familiar structural metals — no visible reaction with cold water in this model.
+    Al:  { rate: 0, heat: 0, bubbleRate: 0, waterColor: null, eq: 'Al + H₂O (cold) → No Reaction (oxide layer)' },
+    Zn:  { rate: 0, heat: 0, bubbleRate: 0, waterColor: null, eq: 'Zn + H₂O (cold) → No Reaction' },
+    Fe:  { rate: 0, heat: 0, bubbleRate: 0, waterColor: null, eq: 'Fe + H₂O (cold) → No Immediate Reaction' },
+    Cu:  { rate: 0, heat: 0, bubbleRate: 0, waterColor: null, eq: 'Cu + H₂O → No Reaction' },
   };
+
+  function reactionDataFor(element = selectedElement) {
+    return REACTION_DATA[element.sym] || {
+      rate: 0,
+      heat: 0,
+      bubbleRate: 0,
+      waterColor: null,
+      modeled: false,
+      eq: `${element.sym} + H₂O → No curated reaction model`,
+    };
+  }
 
   // Reaction state
   const rxn = {
@@ -954,8 +992,8 @@ function attachVirtualLabListeners() {
   function updateCubeAppearance() {
     const cubeEl = document.getElementById('virtual-lab-metal-cube');
     if (!cubeEl) return;
-    cubeEl.style.background = '#b0b5bc';
-    cubeEl.style.border = '1px solid #9da3ab';
+    cubeEl.style.background = selectedElement.material;
+    cubeEl.style.border = '1px solid rgba(55,65,81,0.48)';
     cubeEl.style.color = 'white';
     cubeEl.style.display = 'flex';
     cubeEl.style.alignItems = 'center';
@@ -963,8 +1001,9 @@ function attachVirtualLabListeners() {
     cubeEl.style.fontSize = '17px';
     cubeEl.style.fontWeight = '800';
     cubeEl.style.fontFamily = "'Inter', sans-serif";
-    cubeEl.style.textShadow = '0 1px 2px rgba(0,0,0,0.25)';
-    cubeEl.innerHTML = `<span style="color:${selectedElement.color};text-shadow:none;font-size:17px;font-weight:800">${selectedElement.sym}</span>`;
+    cubeEl.style.textShadow = '0 1px 2px rgba(0,0,0,0.32)';
+    cubeEl.dataset.phase = selectedElement.phase.toLowerCase();
+    cubeEl.innerHTML = `<small>${selectedElement.atomicNumber}</small><span>${selectedElement.sym}</span><em>${selectedElement.phase}</em>`;
     cubeEl.setAttribute("aria-label", `${selectedElement.name} sample. Drag into the beaker or press Enter to mix.`);
   }
 
@@ -1040,7 +1079,7 @@ function attachVirtualLabListeners() {
 
   /** Main per-frame reaction tick */
   function tickReaction(metrics, frameFactor = 1) {
-    const data = REACTION_DATA[selectedElement.sym];
+    const data = reactionDataFor();
     const submerged = isCubeSubmerged(metrics);
 
     if (rxn.paused) {
@@ -1048,7 +1087,7 @@ function attachVirtualLabListeners() {
       return;
     }
 
-    if (!data || data.rate === 0) {
+    if (data.rate === 0) {
       // No reaction (e.g. Be) — show the observation once and cool down.
       if (rxn.active) {
         rxn.active = false;
@@ -1240,6 +1279,7 @@ function attachVirtualLabListeners() {
     if (rxn.paused) return "Paused · resume to continue simulated time";
     if (!state.particles.length) return "Ready · add water, then drop in the sample";
     if (rxn.progress >= 1) return "Complete · reaction products remain in solution";
+    if (submerged && data?.modeled === false) return `Reference only · no curated water reaction for ${selectedElement.name}`;
     if (submerged && data?.rate === 0) return `Observe · ${selectedElement.name} shows no reaction with cold water`;
     if (!submerged) return "Ready · drag the element sample below the water surface";
     if (rxn.progress < 0.16) return "Contact · reactant particles begin colliding";
@@ -1247,7 +1287,7 @@ function attachVirtualLabListeners() {
     return "Settling · sample is consumed and products disperse";
   }
 
-  function updateReactionHud(data = REACTION_DATA[selectedElement.sym], submerged = false) {
+  function updateReactionHud(data = reactionDataFor(), submerged = false) {
     if (hudSample) hudSample.textContent = `${selectedElement.sym} · ${selectedElement.name}`;
     if (hudTime) hudTime.textContent = `${(rxn.elapsedMs / 1000).toFixed(1)} s`;
     if (hudProgress) hudProgress.style.width = `${Math.round(rxn.progress * 100)}%`;
@@ -1347,7 +1387,7 @@ function attachVirtualLabListeners() {
     }
     // Reset water particle color
     state.particles.forEach(p => {
-      if (p.el) p.el.style.background = '#4da6ff';
+      if (p.el) p.el.style.background = '#65bde4';
     });
     // Reset thermometer
     updateThermometer();
@@ -1358,18 +1398,24 @@ function attachVirtualLabListeners() {
 
   function buildPickerHTML() {
     if (!elementPicker) return;
-    let html = '';
-    METAL_ELEMENTS.forEach(group => {
-      html += `<div class="virtual-lab-picker-group">${group.group}</div>`;
-      group.elements.forEach(el => {
-        const isActive = el.sym === selectedElement.sym ? ' active' : '';
-        html += `<button class="virtual-lab-picker-item${isActive}" data-sym="${el.sym}">
-          <span class="virtual-lab-picker-sym" style="background:${el.color}">${el.sym}</span>
-          ${el.name}
-        </button>`;
-      });
-    });
-    elementPicker.innerHTML = html;
+    const cards = PERIODIC_ELEMENTS.map((element) => {
+      const isActive = element.sym === selectedElement.sym ? " active" : "";
+      const isModeled = Object.hasOwn(REACTION_DATA, element.sym);
+      return `<button class="virtual-lab-picker-item${isActive}" data-sym="${element.sym}" data-search="${element.atomicNumber} ${element.sym.toLowerCase()} ${element.name.toLowerCase()}" title="${element.name} · ${element.category} · ${element.phase}">
+        <span class="virtual-lab-picker-number">${element.atomicNumber}</span>
+        <strong style="color:${element.color}">${element.sym}</strong>
+        <small>${element.name}</small>
+        ${isModeled ? '<i aria-label="Curated water reaction">●</i>' : ""}
+      </button>`;
+    }).join("");
+    elementPicker.innerHTML = `
+      <label class="virtual-lab-picker-search">
+        <span>Choose from 118 elements</span>
+        <input id="virtual-lab-element-search" type="search" placeholder="Search name, symbol or number…" autocomplete="off">
+      </label>
+      <div class="virtual-lab-picker-legend"><span><i></i> Curated water reaction</span><span>Others open in reference mode</span></div>
+      <div class="virtual-lab-picker-grid">${cards}</div>
+    `;
   }
 
   function openPicker() {
@@ -1380,25 +1426,35 @@ function attachVirtualLabListeners() {
     const shell = document.querySelector('.virtual-lab-shell');
     const shellRect = shell.getBoundingClientRect();
     
-    // Center it relative to the button (picker is 160px wide)
-    let left = btnRect.left - shellRect.left + (btnRect.width / 2) - 80;
+    const pickerWidth = Math.min(460, shellRect.width - 20);
+    elementPicker.style.width = `${pickerWidth}px`;
+    // Center it relative to the button.
+    let left = btnRect.left - shellRect.left + (btnRect.width / 2) - pickerWidth / 2;
     // Set 8px gap above the button's top edge
     let bottom = shellRect.bottom - btnRect.top + 8;
     
     // Keep within shell horizontally
     if (left < 10) left = 10;
-    if (left + 160 > shellRect.width) left = shellRect.width - 170;
+    if (left + pickerWidth > shellRect.width - 10) left = shellRect.width - pickerWidth - 10;
     
     elementPicker.style.top = 'auto';
     elementPicker.style.bottom = bottom + 'px';
     elementPicker.style.left = left + 'px';
     elementPicker.classList.add('open');
 
+    const search = elementPicker.querySelector("#virtual-lab-element-search");
+    search?.addEventListener("input", () => {
+      const query = search.value.trim().toLowerCase();
+      elementPicker.querySelectorAll(".virtual-lab-picker-item").forEach((button) => {
+        button.hidden = Boolean(query) && !button.dataset.search.includes(query);
+      });
+    });
+
     // Handle selection
     elementPicker.querySelectorAll('.virtual-lab-picker-item').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const sym = e.currentTarget.dataset.sym;
-        const found = METAL_ELEMENTS.flatMap(g => g.elements).find(el => el.sym === sym);
+        const found = PERIODIC_ELEMENTS.find((element) => element.sym === sym);
         if (found) {
           selectedElement = found;
           resetReaction();
@@ -1581,14 +1637,14 @@ function attachVirtualLabListeners() {
     if (particle.mode !== "vapor") {
       const t = particle.tint || 0;
       if (t > 0.01) {
-        // Blend from original blue (#4da6ff) toward milky color
-        const r = Math.round(77 + (235 - 77) * t);
-        const g = Math.round(166 + (235 - 166) * t);
-        const b = Math.round(255 + (230 - 255) * t);
+        // Blend from translucent laboratory-blue water toward the product tint.
+        const r = Math.round(101 + (235 - 101) * t);
+        const g = Math.round(189 + (235 - 189) * t);
+        const b = Math.round(228 + (230 - 228) * t);
         const a = 1 - t * 0.2;
         particle.el.style.background = `rgba(${r},${g},${b},${a})`;
       } else {
-        particle.el.style.background = '#4da6ff';
+        particle.el.style.background = '#65bde4';
       }
     }
   }
@@ -2239,7 +2295,7 @@ function attachVirtualLabListeners() {
 
       // Reaction-based Jitter: adds tiny high-frequency noise when metal is reacting
       // Exponentially boost jitter for higher rates (like Fr) to feel more "violent"
-      const reactionRate = REACTION_DATA[selectedElement.sym]?.rate || 0;
+      const reactionRate = reactionDataFor().rate;
       const reactionIntensity = (rxn.active && !rxn.paused && rxn.progress < 1)
         ? Math.pow(reactionRate * 800 * rxn.timeScale, 1.2)
         : 0;
@@ -2497,7 +2553,7 @@ function attachVirtualLabListeners() {
   if (timeToggle) {
     timeToggle.addEventListener("click", () => {
       rxn.paused = !rxn.paused;
-      updateReactionHud(REACTION_DATA[selectedElement.sym], isCubeSubmerged(getCupMetrics()));
+      updateReactionHud(reactionDataFor(), isCubeSubmerged(getCupMetrics()));
     }, { signal });
   }
 
