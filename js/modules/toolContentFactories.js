@@ -1,6 +1,7 @@
 // CSS is now loaded in index.html to support native ES modules without a bundler
 
 import { t } from "./langController.js";
+import { ACE_LAB_LEVELS } from "./virtualLabExperiments.js";
 
 const TOOL_CONTENT_FACTORIES = {
   balancer: generateBalancerToolContent,
@@ -1953,6 +1954,424 @@ function generateVirtualLabToolContent() {
                 line-height: 1.35;
             }
 
+            .virtual-lab-mode-switch {
+                position: absolute;
+                top: 12px;
+                left: 50%;
+                z-index: 80;
+                display: flex;
+                gap: 3px;
+                padding: 3px;
+                border: 1px solid rgba(148,163,184,0.2);
+                border-radius: 12px;
+                background: rgba(255,255,255,0.78);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                box-shadow: 0 6px 18px rgba(15,23,42,0.08);
+                transform: translateX(-50%);
+            }
+
+            .virtual-lab-mode-btn {
+                appearance: none;
+                padding: 7px 12px;
+                border: 0;
+                border-radius: 9px;
+                background: transparent;
+                color: #64748b;
+                font: inherit;
+                font-size: 10px;
+                font-weight: 750;
+                cursor: pointer;
+            }
+
+            .virtual-lab-mode-btn.active {
+                background: #fff;
+                color: #312e81;
+                box-shadow: 0 2px 8px rgba(15,23,42,0.11);
+            }
+
+            .virtual-lab-practicals {
+                position: absolute;
+                inset: 0;
+                z-index: 60;
+                display: grid;
+                grid-template-columns: minmax(190px, 0.72fr) minmax(330px, 1.35fr) minmax(210px, 0.85fr);
+                gap: 12px;
+                padding: 58px 14px 14px;
+                background:
+                    radial-gradient(circle at 70% 15%, rgba(255,255,255,0.9), transparent 28%),
+                    linear-gradient(180deg, #e9f2f4 0 52%, #b7c6ca 52.2%, #d5dfde 100%);
+                box-sizing: border-box;
+            }
+
+            .virtual-lab-practicals[hidden] {
+                display: none;
+            }
+
+            .virtual-lab-practical-card {
+                min-height: 0;
+                padding: 13px;
+                overflow: hidden;
+                border: 1px solid rgba(255,255,255,0.72);
+                border-radius: 15px;
+                background: rgba(255,255,255,0.78);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                box-shadow: 0 10px 28px rgba(15,23,42,0.1), inset 0 1px 0 #fff;
+                box-sizing: border-box;
+            }
+
+            .virtual-lab-practical-sidebar {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .virtual-lab-practical-label {
+                display: block;
+                margin-bottom: 5px;
+                color: #64748b;
+                font-size: 8px;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            .virtual-lab-level-select {
+                width: 100%;
+                padding: 9px 10px;
+                border: 1px solid rgba(148,163,184,0.3);
+                border-radius: 10px;
+                background: #fff;
+                color: #1e293b;
+                font: inherit;
+                font-size: 11px;
+                font-weight: 700;
+            }
+
+            .virtual-lab-level-basis {
+                margin: 8px 0 10px;
+                color: #64748b;
+                font-size: 9px;
+                line-height: 1.4;
+            }
+
+            .virtual-lab-experiment-list {
+                display: grid;
+                gap: 6px;
+                min-height: 0;
+                padding-right: 3px;
+                overflow-y: auto;
+            }
+
+            .virtual-lab-experiment-btn {
+                appearance: none;
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 3px 8px;
+                padding: 9px 10px;
+                border: 1px solid rgba(148,163,184,0.2);
+                border-radius: 10px;
+                background: rgba(248,250,252,0.84);
+                color: #334155;
+                text-align: left;
+                font: inherit;
+                cursor: pointer;
+            }
+
+            .virtual-lab-experiment-btn strong {
+                font-size: 10px;
+            }
+
+            .virtual-lab-experiment-btn small {
+                grid-column: 1;
+                color: #94a3b8;
+                font-size: 8px;
+            }
+
+            .virtual-lab-experiment-btn span {
+                grid-column: 2;
+                grid-row: 1 / 3;
+                align-self: center;
+                padding: 3px 5px;
+                border-radius: 6px;
+                background: #eef2ff;
+                color: #4f46e5;
+                font-size: 7px;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+
+            .virtual-lab-experiment-btn.active {
+                border-color: #6366f1;
+                background: #eef2ff;
+                box-shadow: inset 0 0 0 1px rgba(99,102,241,0.2);
+            }
+
+            .virtual-lab-titration-bench {
+                position: relative;
+                min-height: 0;
+                overflow: hidden;
+                border: 1px solid rgba(111,135,144,0.2);
+                border-radius: 15px;
+                background:
+                    linear-gradient(90deg, transparent, rgba(255,255,255,0.12) 50%, transparent),
+                    linear-gradient(180deg, rgba(238,247,249,0.9) 0 58%, #8f6a48 58.2%, #bb8d5f 63%, #775335 64%, #b9c6c5 64.2%);
+                box-shadow: inset 0 3px 12px rgba(49,78,88,0.08), 0 10px 26px rgba(15,23,42,0.08);
+            }
+
+            .virtual-lab-burette-stand {
+                position: absolute;
+                left: 30%;
+                top: 8%;
+                bottom: 22%;
+                width: 8px;
+                border-radius: 5px;
+                background: linear-gradient(90deg, #4b5563, #cbd5e1 45%, #64748b);
+                box-shadow: 0 4px 9px rgba(15,23,42,0.2);
+            }
+
+            .virtual-lab-burette {
+                position: absolute;
+                left: calc(30% + 28px);
+                top: 7%;
+                width: 22px;
+                height: 55%;
+                border: 3px solid rgba(155,184,194,0.82);
+                border-radius: 6px 6px 10px 10px;
+                background: rgba(245,252,253,0.4);
+                box-shadow: inset 5px 0 8px rgba(255,255,255,0.7), 3px 5px 12px rgba(39,67,76,0.12);
+            }
+
+            .virtual-lab-burette::before {
+                content: '';
+                position: absolute;
+                left: -34px;
+                top: 20%;
+                width: 37px;
+                height: 6px;
+                border-radius: 4px;
+                background: #64748b;
+            }
+
+            .virtual-lab-burette-fill {
+                position: absolute;
+                inset: 4px 3px auto;
+                height: 90%;
+                border-radius: 3px 3px 7px 7px;
+                background: linear-gradient(90deg, rgba(147,197,253,0.75), rgba(219,234,254,0.88));
+                transition: height 160ms linear;
+            }
+
+            .virtual-lab-burette-tip {
+                position: absolute;
+                left: 50%;
+                top: 100%;
+                width: 4px;
+                height: 34px;
+                background: #9fb5bd;
+                transform: translateX(-50%);
+            }
+
+            .virtual-lab-titration-drop {
+                position: absolute;
+                left: 50%;
+                top: calc(100% + 32px);
+                width: 6px;
+                height: 8px;
+                border-radius: 50% 50% 55% 55%;
+                background: #93c5fd;
+                opacity: 0;
+                transform: translateX(-50%);
+            }
+
+            .virtual-lab-titration-drop.falling {
+                animation: vlab-titration-drop 420ms ease-in forwards;
+            }
+
+            @keyframes vlab-titration-drop {
+                0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); }
+                100% { opacity: 0.75; transform: translate(-50%, 78px) scale(1.05); }
+            }
+
+            .virtual-lab-titration-flask {
+                position: absolute;
+                left: calc(30% + 2px);
+                bottom: 21%;
+                width: 82px;
+                height: 94px;
+            }
+
+            .virtual-lab-titration-flask::before {
+                content: '';
+                position: absolute;
+                left: 31px;
+                top: 0;
+                width: 20px;
+                height: 35px;
+                border: 3px solid rgba(153,183,193,0.84);
+                border-bottom: 0;
+                background: rgba(255,255,255,0.3);
+                box-sizing: border-box;
+            }
+
+            .virtual-lab-flask-body {
+                position: absolute;
+                inset: 29px 0 0;
+                overflow: hidden;
+                border: 3px solid rgba(153,183,193,0.84);
+                border-radius: 8px 8px 34px 34px;
+                background: rgba(255,255,255,0.28);
+                clip-path: polygon(34% 0, 66% 0, 100% 86%, 94% 100%, 6% 100%, 0 86%);
+                box-shadow: inset 8px 0 12px rgba(255,255,255,0.62);
+            }
+
+            .virtual-lab-flask-liquid {
+                position: absolute;
+                left: 6px;
+                right: 6px;
+                bottom: 5px;
+                height: 43%;
+                border-radius: 0 0 28px 28px;
+                background: #f8fafc;
+                opacity: 0.82;
+                transition: background 220ms ease, height 220ms ease;
+            }
+
+            .virtual-lab-titration-flask.swirl {
+                animation: vlab-flask-swirl 560ms ease;
+            }
+
+            @keyframes vlab-flask-swirl {
+                0%, 100% { transform: rotate(0); }
+                25% { transform: rotate(-5deg) translateX(-3px); }
+                70% { transform: rotate(5deg) translateX(3px); }
+            }
+
+            .virtual-lab-titration-readout {
+                position: absolute;
+                top: 14px;
+                right: 14px;
+                width: 145px;
+                padding: 11px;
+                border: 1px solid rgba(255,255,255,0.8);
+                border-radius: 12px;
+                background: rgba(255,255,255,0.76);
+                box-shadow: 0 8px 20px rgba(15,23,42,0.09);
+                box-sizing: border-box;
+            }
+
+            .virtual-lab-titration-readout strong,
+            .virtual-lab-titration-readout span {
+                display: block;
+            }
+
+            .virtual-lab-titration-readout strong {
+                color: #1e293b;
+                font-size: 18px;
+            }
+
+            .virtual-lab-titration-readout span {
+                margin-top: 2px;
+                color: #64748b;
+                font-size: 8px;
+                line-height: 1.35;
+            }
+
+            .virtual-lab-titration-controls {
+                position: absolute;
+                right: 14px;
+                bottom: 15%;
+                display: grid;
+                gap: 6px;
+                width: 145px;
+            }
+
+            .virtual-lab-titration-controls button {
+                appearance: none;
+                padding: 8px 10px;
+                border: 1px solid rgba(148,163,184,0.26);
+                border-radius: 9px;
+                background: rgba(255,255,255,0.9);
+                color: #334155;
+                font: inherit;
+                font-size: 9px;
+                font-weight: 750;
+                cursor: pointer;
+            }
+
+            .virtual-lab-titration-controls button.primary {
+                border-color: #4f46e5;
+                background: #4f46e5;
+                color: #fff;
+            }
+
+            .virtual-lab-guided-placeholder {
+                position: absolute;
+                inset: 22% 14%;
+                display: grid;
+                place-items: center;
+                padding: 24px;
+                border: 1px dashed rgba(100,116,139,0.35);
+                border-radius: 16px;
+                background: rgba(255,255,255,0.72);
+                color: #475569;
+                text-align: center;
+                font-size: 11px;
+                line-height: 1.5;
+            }
+
+            .virtual-lab-guided-placeholder[hidden],
+            .virtual-lab-titration-controls[hidden],
+            .virtual-lab-titration-bench [hidden] {
+                display: none;
+            }
+
+            .virtual-lab-practical-detail {
+                overflow-y: auto;
+            }
+
+            .virtual-lab-practical-detail h3 {
+                margin: 0 0 4px;
+                color: #1e293b;
+                font-size: 14px;
+            }
+
+            .virtual-lab-practical-detail .meta {
+                margin: 0 0 10px;
+                color: #6366f1;
+                font-size: 8px;
+                font-weight: 800;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+
+            .virtual-lab-practical-detail h4 {
+                margin: 11px 0 5px;
+                color: #64748b;
+                font-size: 8px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            .virtual-lab-practical-detail p,
+            .virtual-lab-practical-detail li {
+                color: #475569;
+                font-size: 9px;
+                line-height: 1.45;
+            }
+
+            .virtual-lab-practical-detail ol {
+                margin: 0;
+                padding-left: 17px;
+            }
+
+            .virtual-lab-practical-safety {
+                padding: 8px;
+                border-radius: 9px;
+                background: #fff7ed;
+                color: #9a3412 !important;
+            }
+
             @media (max-width: 980px) {
                 .virtual-lab-stage {
                     min-height: 460px;
@@ -1966,6 +2385,12 @@ function generateVirtualLabToolContent() {
                 .virtual-lab-4d-hud {
                     width: 205px;
                 }
+                .virtual-lab-practicals {
+                    grid-template-columns: 180px 1fr;
+                }
+                .virtual-lab-practical-detail {
+                    display: none;
+                }
             }
 
             @media (max-width: 720px) {
@@ -1974,6 +2399,13 @@ function generateVirtualLabToolContent() {
                 }
                 .virtual-lab-picker-grid {
                     grid-template-columns: repeat(6, minmax(0, 1fr));
+                }
+                .virtual-lab-practicals {
+                    grid-template-columns: 1fr;
+                    padding-top: 54px;
+                }
+                .virtual-lab-practical-sidebar {
+                    display: none;
                 }
                 .virtual-lab-4d-hud {
                     top: 10px;
@@ -2014,6 +2446,10 @@ function generateVirtualLabToolContent() {
             </defs>
         </svg>
         <div class="virtual-lab-shell">
+            <nav class="virtual-lab-mode-switch" aria-label="Virtual lab workspace">
+                <button class="virtual-lab-mode-btn active" type="button" data-vlab-mode="elements">Element mixer</button>
+                <button class="virtual-lab-mode-btn" type="button" data-vlab-mode="practicals">Guided practicals</button>
+            </nav>
             <div class="virtual-lab-stage">
                 <div class="virtual-lab-scene" id="virtual-lab-scene">
                     <div class="virtual-lab-depth-grid" aria-hidden="true"></div>
@@ -2090,6 +2526,41 @@ function generateVirtualLabToolContent() {
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>${t("virtualLab.element", "Element")}
                         </button>
                     </div>
+                    <section class="virtual-lab-practicals" id="virtual-lab-practicals" hidden>
+                        <aside class="virtual-lab-practical-card virtual-lab-practical-sidebar">
+                            <label class="virtual-lab-practical-label" for="virtual-lab-level-select">ACE class / level</label>
+                            <select class="virtual-lab-level-select" id="virtual-lab-level-select">
+                                ${ACE_LAB_LEVELS.map((level) => `<option value="${level.id}">${level.label} · ${level.course}</option>`).join("")}
+                            </select>
+                            <p class="virtual-lab-level-basis" id="virtual-lab-level-basis"></p>
+                            <div class="virtual-lab-experiment-list" id="virtual-lab-experiment-list"></div>
+                        </aside>
+                        <div class="virtual-lab-titration-bench" id="virtual-lab-titration-bench">
+                            <div class="virtual-lab-burette-stand" aria-hidden="true"></div>
+                            <div class="virtual-lab-burette" aria-label="Burette">
+                                <div class="virtual-lab-burette-fill" id="virtual-lab-burette-fill"></div>
+                                <div class="virtual-lab-burette-tip"></div>
+                                <div class="virtual-lab-titration-drop" id="virtual-lab-titration-drop"></div>
+                            </div>
+                            <div class="virtual-lab-titration-flask" id="virtual-lab-titration-flask" aria-label="Conical flask">
+                                <div class="virtual-lab-flask-body">
+                                    <div class="virtual-lab-flask-liquid" id="virtual-lab-flask-liquid"></div>
+                                </div>
+                            </div>
+                            <div class="virtual-lab-titration-readout">
+                                <span>Delivered volume</span>
+                                <strong id="virtual-lab-titration-volume">0.00 mL</strong>
+                                <span id="virtual-lab-titration-status">Select a titration and begin dropwise addition.</span>
+                            </div>
+                            <div class="virtual-lab-titration-controls" id="virtual-lab-titration-controls">
+                                <button class="primary" id="virtual-lab-titration-drop-btn" type="button">Add 0.20 mL</button>
+                                <button id="virtual-lab-titration-auto-btn" type="button">Auto titrate</button>
+                                <button id="virtual-lab-titration-reset-btn" type="button">Reset reading</button>
+                            </div>
+                            <div class="virtual-lab-guided-placeholder" id="virtual-lab-guided-placeholder" hidden></div>
+                        </div>
+                        <article class="virtual-lab-practical-card virtual-lab-practical-detail" id="virtual-lab-practical-detail"></article>
+                    </section>
                 </div>
             </div>
             <div class="virtual-lab-reaction-info" id="virtual-lab-reaction-info"></div>
