@@ -12,6 +12,12 @@ import { formatReactionError } from "./equationBalancer.js";
 import { predictReaction } from "./reactionPredictor.js";
 import { t } from "./langController.js";
 import { finallyData } from "../data/elementsData.js";
+import {
+  ACE_LAB_EXPERIMENTS,
+  ACE_LAB_LEVELS,
+  experimentsForLevel,
+  titrationState,
+} from "./virtualLabExperiments.js";
 
 const TOOL_LISTENER_MAP = {
   balancer: attachBalancerListeners,
@@ -837,6 +843,23 @@ function attachVirtualLabListeners() {
   const hudPhase = document.getElementById("virtual-lab-hud-phase");
   const timeToggle = document.getElementById("virtual-lab-time-toggle");
   const speedButtons = [...document.querySelectorAll("[data-vlab-speed]")];
+  const modeButtons = [...document.querySelectorAll("[data-vlab-mode]")];
+  const practicalsPanel = document.getElementById("virtual-lab-practicals");
+  const levelSelect = document.getElementById("virtual-lab-level-select");
+  const levelBasis = document.getElementById("virtual-lab-level-basis");
+  const experimentList = document.getElementById("virtual-lab-experiment-list");
+  const practicalDetail = document.getElementById("virtual-lab-practical-detail");
+  const titrationBench = document.getElementById("virtual-lab-titration-bench");
+  const guidedPlaceholder = document.getElementById("virtual-lab-guided-placeholder");
+  const buretteFill = document.getElementById("virtual-lab-burette-fill");
+  const flask = document.getElementById("virtual-lab-titration-flask");
+  const flaskLiquid = document.getElementById("virtual-lab-flask-liquid");
+  const titrationDrop = document.getElementById("virtual-lab-titration-drop");
+  const titrationVolume = document.getElementById("virtual-lab-titration-volume");
+  const titrationStatus = document.getElementById("virtual-lab-titration-status");
+  const titrationDropBtn = document.getElementById("virtual-lab-titration-drop-btn");
+  const titrationAutoBtn = document.getElementById("virtual-lab-titration-auto-btn");
+  const titrationResetBtn = document.getElementById("virtual-lab-titration-reset-btn");
   if (
     !scene ||
     !beakerWrap ||
@@ -987,6 +1010,161 @@ function attachVirtualLabListeners() {
     paused: false,
     timeScale: 1,
   };
+
+  const practicalState = {
+    level: "11",
+    experiment: ACE_LAB_EXPERIMENTS.find((row) => row.id === "hcl-naoh"),
+    deliveredMl: 0,
+    autoTimer: null,
+  };
+
+  function stopAutoTitration() {
+    if (practicalState.autoTimer) {
+      window.clearInterval(practicalState.autoTimer);
+      practicalState.autoTimer = null;
+    }
+    if (titrationAutoBtn) titrationAutoBtn.textContent = "Auto titrate";
+  }
+
+  function updateTitrationBench() {
+    const state = titrationState(practicalState.experiment, practicalState.deliveredMl);
+    if (!state) return;
+    if (titrationVolume) titrationVolume.textContent = `${state.deliveredMl.toFixed(2)} mL`;
+    if (buretteFill) buretteFill.style.height = `${Math.max(0, 90 - state.deliveredMl * 1.7)}%`;
+    if (flaskLiquid) {
+      flaskLiquid.style.background = state.color;
+      flaskLiquid.style.height = `${Math.min(62, 43 + state.deliveredMl * 0.38)}%`;
+    }
+    if (titrationStatus) {
+      const remaining = Math.max(0, state.endpointMl - state.deliveredMl);
+      if (state.pastEndpoint) {
+        titrationStatus.textContent = `Endpoint passed by ${(state.deliveredMl - state.endpointMl).toFixed(2)} mL · reset and repeat.`;
+      } else if (state.atEndpoint) {
+        titrationStatus.textContent = `Endpoint window reached · target ${state.endpointMl.toFixed(2)} mL.`;
+      } else {
+        titrationStatus.textContent = `${remaining.toFixed(2)} mL to the calculated ${state.endpointMl.toFixed(2)} mL endpoint.`;
+      }
+    }
+  }
+
+  function addTitrant(amount = 0.2) {
+    if (practicalState.experiment?.kind !== "titration") return;
+    practicalState.deliveredMl = Math.min(50, practicalState.deliveredMl + amount);
+    if (titrationDrop) {
+      titrationDrop.classList.remove("falling");
+      void titrationDrop.offsetWidth;
+      titrationDrop.classList.add("falling");
+    }
+    if (flask) {
+      flask.classList.remove("swirl");
+      void flask.offsetWidth;
+      flask.classList.add("swirl");
+    }
+    updateTitrationBench();
+    const state = titrationState(practicalState.experiment, practicalState.deliveredMl);
+    if (practicalState.autoTimer && (state.atEndpoint || state.pastEndpoint || state.deliveredMl >= 50)) {
+      stopAutoTitration();
+    }
+  }
+
+  function renderPracticalDetail(experiment) {
+    if (!practicalDetail) return;
+    practicalDetail.innerHTML = `
+      <h3>${experiment.title}</h3>
+      <p class="meta">${experiment.duration} · ${experiment.kind === "titration" ? "Interactive titration" : "Guided practical"}</p>
+      ${experiment.titration ? `<p><strong>${experiment.titration.analyteFormula}</strong> in flask · <strong>${experiment.titration.titrantFormula}</strong> in burette</p><p>${experiment.titration.equation}</p>` : ""}
+      <h4>Apparatus</h4>
+      <p>${experiment.apparatus.join(" · ")}</p>
+      <h4>Method</h4>
+      <ol>${experiment.steps.map((step) => `<li>${step}</li>`).join("")}</ol>
+      <h4>Expected observation</h4>
+      <p>${experiment.observation}</p>
+      <h4>Safety</h4>
+      <p class="virtual-lab-practical-safety">${experiment.safety}</p>
+    `;
+  }
+
+  function selectPractical(experimentId) {
+    const experiment = ACE_LAB_EXPERIMENTS.find((row) => row.id === experimentId);
+    if (!experiment) return;
+    stopAutoTitration();
+    practicalState.experiment = experiment;
+    practicalState.deliveredMl = 0;
+    experimentList?.querySelectorAll("[data-vlab-experiment]").forEach((button) => {
+      button.classList.toggle("active", button.dataset.vlabExperiment === experiment.id);
+    });
+    renderPracticalDetail(experiment);
+    const isTitration = experiment.kind === "titration";
+    if (titrationBench) titrationBench.dataset.kind = experiment.kind;
+    if (guidedPlaceholder) {
+      guidedPlaceholder.hidden = isTitration;
+      if (!isTitration) {
+        guidedPlaceholder.innerHTML = `<div><strong>${experiment.title}</strong><p>${experiment.observation}</p><small>Follow the class-safe method and apparatus list in the practical guide.</small></div>`;
+      }
+    }
+    const controls = document.getElementById("virtual-lab-titration-controls");
+    if (controls) controls.hidden = !isTitration;
+    const burette = titrationBench?.querySelector(".virtual-lab-burette");
+    const stand = titrationBench?.querySelector(".virtual-lab-burette-stand");
+    const currentFlask = titrationBench?.querySelector(".virtual-lab-titration-flask");
+    const readout = titrationBench?.querySelector(".virtual-lab-titration-readout");
+    [burette, stand, currentFlask, readout].forEach((element) => {
+      if (element) element.hidden = !isTitration;
+    });
+    if (isTitration) updateTitrationBench();
+  }
+
+  function renderPracticalLevel(levelId) {
+    practicalState.level = levelId;
+    const level = ACE_LAB_LEVELS.find((row) => row.id === levelId) || ACE_LAB_LEVELS[0];
+    const experiments = experimentsForLevel(level.id);
+    if (levelBasis) levelBasis.textContent = level.basis;
+    if (experimentList) {
+      experimentList.innerHTML = experiments.map((experiment, index) => `
+        <button class="virtual-lab-experiment-btn${index === 0 ? " active" : ""}" type="button" data-vlab-experiment="${experiment.id}">
+          <strong>${experiment.title}</strong>
+          <small>${experiment.duration}</small>
+          <span>${experiment.kind === "titration" ? "Titrate" : "Guide"}</span>
+        </button>
+      `).join("");
+      experimentList.querySelectorAll("[data-vlab-experiment]").forEach((button) => {
+        button.addEventListener("click", () => selectPractical(button.dataset.vlabExperiment), { signal });
+      });
+    }
+    if (experiments[0]) selectPractical(experiments[0].id);
+  }
+
+  function setLabMode(mode) {
+    const practicals = mode === "practicals";
+    if (practicalsPanel) practicalsPanel.hidden = !practicals;
+    modeButtons.forEach((button) => {
+      const active = button.dataset.vlabMode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    if (!practicals) stopAutoTitration();
+  }
+
+  modeButtons.forEach((button) => {
+    button.addEventListener("click", () => setLabMode(button.dataset.vlabMode), { signal });
+  });
+  levelSelect?.addEventListener("change", () => renderPracticalLevel(levelSelect.value), { signal });
+  titrationDropBtn?.addEventListener("click", () => addTitrant(0.2), { signal });
+  titrationResetBtn?.addEventListener("click", () => {
+    stopAutoTitration();
+    practicalState.deliveredMl = 0;
+    updateTitrationBench();
+  }, { signal });
+  titrationAutoBtn?.addEventListener("click", () => {
+    if (practicalState.autoTimer) {
+      stopAutoTitration();
+      return;
+    }
+    titrationAutoBtn.textContent = "Pause auto";
+    practicalState.autoTimer = window.setInterval(() => addTitrant(0.2), 90);
+  }, { signal });
+  if (levelSelect) levelSelect.value = practicalState.level;
+  renderPracticalLevel(practicalState.level);
 
 
   function updateCubeAppearance() {
@@ -2694,6 +2872,7 @@ function attachVirtualLabListeners() {
   state.animationFrame = window.requestAnimationFrame(animate);
 
   virtualLabCleanup = () => {
+    stopAutoTitration();
     controller.abort();
     if (state.animationFrame) {
       window.cancelAnimationFrame(state.animationFrame);

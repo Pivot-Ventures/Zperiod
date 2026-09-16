@@ -97,7 +97,7 @@ export const enUI = {
     "solubilityGrade": "Reference",
     "solubilityTag": "Grid",
     "virtualLabName": "Virtual Lab",
-    "virtualLabDesc": "Explore all 118 elements in a realistic 4D lab, with curated water reactions, material colors, heat, gas, depth, and time controls."
+    "virtualLabDesc": "A realistic bench lab with all 118 elements, ACE level guides, interactive titrations, heat, gas, depth, and time controls."
   },
   "worksheet": {
     "title": "Worksheet Generator",
