@@ -97,7 +97,7 @@ export const enUI = {
     "solubilityGrade": "Reference",
     "solubilityTag": "Grid",
     "virtualLabName": "Virtual Lab",
-    "virtualLabDesc": "Tilt a beaker and play with particle water inside a simple lab scene."
+    "virtualLabDesc": "Mix a curated element sample with water in a 4D reaction view with depth, heat, gas, progress, and time controls."
   },
   "worksheet": {
     "title": "Worksheet Generator",
@@ -690,18 +690,30 @@ export const enUI = {
     "addWater": "Add Water",
     "removeWater": "Remove All Water",
     "beakerAria": "Beaker",
+    "sampleAria": "Sodium sample. Drag into the beaker or press Enter to mix.",
     "reset": "Reset",
-    "element": "Element"
+    "element": "Element",
+    "fourDTitle": "4D Reaction View",
+    "simulation": "Simulation",
+    "sample": "Sample",
+    "medium": "Medium",
+    "time": "Time",
+    "readyPhase": "Ready · add water, then drop in the sample",
+    "timeControls": "Reaction time controls",
+    "pause": "Pause reaction",
+    "safetyNote": "Curated educational model — never reproduce reactive-metal experiments outside a supervised laboratory."
   },
   "virtualLabTutorial": {
-    "sceneTitle": "Virtual Chemistry Lab",
-    "sceneDesc": "Welcome to the Virtual Lab! This is an interactive physics-based playground where you can test the reactivity of different metals.",
+    "sceneTitle": "4D Reaction Studio",
+    "sceneDesc": "Explore a curated metal-and-water model in three-dimensional depth, then follow how the reaction changes over simulated time.",
+    "fourDTitle": "Space + Time",
+    "fourDDesc": "Track the selected sample, reaction stage, progress, and elapsed simulation time. Pause the reaction or compare it at 0.5×, 1×, and 2× speed.",
     "beakerTitle": "Interactive Beaker",
     "beakerDesc": "You can drag the beaker around or rotate it from the top. Add water or empty it using the buttons below.",
     "metalTitle": "The Metal Sample",
-    "metalDesc": "Grab this metal cube and drop it into the water to see a reaction. Some elements react more violently than others!",
+    "metalDesc": "Grab the sample and drop it below the water surface. The model shows reaction rate, gas evolution, sample consumption, and heat over time.",
     "elementPickerTitle": "Change Element",
-    "elementPickerDesc": "Click here to choose a different metal to test. Try comparing Alkali metals with Alkaline Earth metals.",
+    "elementPickerDesc": "Compare curated alkali and alkaline-earth metals. This is an educational model, not a safety guide or an instruction to reproduce the reaction.",
     "thermoTitle": "Thermometer",
     "thermoDesc": "Watch the temperature spike during exothermic reactions as heat is released!"
   },
