@@ -1163,6 +1163,8 @@ function generateVirtualLabToolContent() {
                 border-radius: 20px;
                 box-sizing: border-box;
                 overflow: hidden;
+                perspective: 900px;
+                transform-style: preserve-3d;
                 /* Advanced Premium Bezel / Inset Effect */
                 border: 1px solid rgba(0, 0, 0, 0.06);
                 box-shadow: 
@@ -1170,6 +1172,22 @@ function generateVirtualLabToolContent() {
                     inset 0 2px 4px rgba(0, 0, 0, 0.04),
                     inset 0 -1px 2px rgba(255, 255, 255, 0.6),
                     0 1px 2px rgba(255, 255, 255, 1);
+            }
+
+            .virtual-lab-depth-grid {
+                position: absolute;
+                inset: 46% -12% -24%;
+                z-index: 0;
+                pointer-events: none;
+                opacity: 0.42;
+                transform: rotateX(64deg) translateZ(-70px);
+                transform-origin: center top;
+                background:
+                    linear-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(99, 102, 241, 0.12) 1px, transparent 1px);
+                background-size: 30px 30px;
+                mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 82%);
+                -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 82%);
             }
 
             .virtual-lab-particle-layer {
@@ -1303,7 +1321,7 @@ function generateVirtualLabToolContent() {
                 position: absolute;
                 border-radius: 999px;
                 background: #4da6ff;
-                box-shadow: none;
+                box-shadow: 0 2px 7px rgba(30, 64, 175, 0.18);
                 will-change: transform;
             }
 
@@ -1626,6 +1644,159 @@ function generateVirtualLabToolContent() {
                 font-weight: 700;
             }
 
+            .virtual-lab-4d-hud {
+                position: absolute;
+                top: 14px;
+                right: 14px;
+                width: min(230px, 31%);
+                z-index: 24;
+                padding: 14px;
+                border: 1px solid rgba(255,255,255,0.84);
+                border-radius: 16px;
+                background: rgba(255,255,255,0.74);
+                backdrop-filter: blur(18px) saturate(150%);
+                -webkit-backdrop-filter: blur(18px) saturate(150%);
+                box-shadow: 0 12px 34px rgba(15,23,42,0.11), inset 0 1px 0 #fff;
+                box-sizing: border-box;
+                user-select: none;
+            }
+
+            .virtual-lab-4d-head,
+            .virtual-lab-4d-readout,
+            .virtual-lab-4d-speed {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            .virtual-lab-4d-title {
+                font-size: 12px;
+                font-weight: 800;
+                color: #1e293b;
+                letter-spacing: 0.02em;
+            }
+
+            .virtual-lab-4d-live {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 9px;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                color: #047857;
+                text-transform: uppercase;
+            }
+
+            .virtual-lab-4d-live::before {
+                content: '';
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #10b981;
+                box-shadow: 0 0 0 4px rgba(16,185,129,0.12);
+            }
+
+            .virtual-lab-4d-readout {
+                margin-top: 11px;
+            }
+
+            .virtual-lab-4d-stat {
+                min-width: 0;
+            }
+
+            .virtual-lab-4d-stat span {
+                display: block;
+                font-size: 8px;
+                font-weight: 700;
+                color: #94a3b8;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            .virtual-lab-4d-stat strong {
+                display: block;
+                margin-top: 2px;
+                overflow: hidden;
+                font-size: 11px;
+                font-weight: 750;
+                color: #334155;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .virtual-lab-4d-progress {
+                height: 5px;
+                margin-top: 12px;
+                overflow: hidden;
+                border-radius: 999px;
+                background: rgba(148,163,184,0.22);
+            }
+
+            .virtual-lab-4d-progress > span {
+                display: block;
+                width: 0;
+                height: 100%;
+                border-radius: inherit;
+                background: linear-gradient(90deg, #38bdf8, #6366f1, #f97316);
+                box-shadow: 0 0 12px rgba(99,102,241,0.35);
+                transition: width 180ms linear;
+            }
+
+            .virtual-lab-4d-phase {
+                margin: 7px 0 10px;
+                font-size: 10px;
+                font-weight: 650;
+                color: #64748b;
+                line-height: 1.35;
+            }
+
+            .virtual-lab-4d-speed {
+                justify-content: flex-start;
+            }
+
+            .virtual-lab-time-btn,
+            .virtual-lab-speed-btn {
+                appearance: none;
+                border: 1px solid rgba(148,163,184,0.22);
+                border-radius: 9px;
+                background: rgba(248,250,252,0.86);
+                color: #475569;
+                font: inherit;
+                font-size: 10px;
+                font-weight: 750;
+                cursor: pointer;
+                transition: 150ms ease;
+            }
+
+            .virtual-lab-time-btn {
+                width: 30px;
+                height: 28px;
+                padding: 0;
+            }
+
+            .virtual-lab-speed-btn {
+                height: 28px;
+                padding: 0 8px;
+            }
+
+            .virtual-lab-time-btn:hover,
+            .virtual-lab-speed-btn:hover,
+            .virtual-lab-speed-btn.active {
+                color: #312e81;
+                border-color: rgba(99,102,241,0.35);
+                background: rgba(238,242,255,0.96);
+            }
+
+            .virtual-lab-4d-note {
+                margin: 10px 0 0;
+                padding-top: 9px;
+                border-top: 1px solid rgba(148,163,184,0.18);
+                color: #64748b;
+                font-size: 9px;
+                line-height: 1.35;
+            }
+
             @media (max-width: 980px) {
                 .virtual-lab-stage {
                     min-height: 460px;
@@ -1634,6 +1805,33 @@ function generateVirtualLabToolContent() {
                 .virtual-lab-beaker-wrap {
                     width: 150px;
                     height: 210px;
+                }
+
+                .virtual-lab-4d-hud {
+                    width: 205px;
+                }
+            }
+
+            @media (max-width: 720px) {
+                .virtual-lab-4d-hud {
+                    top: 10px;
+                    right: 10px;
+                    width: 184px;
+                    padding: 11px;
+                }
+                .virtual-lab-4d-stat:nth-child(2) {
+                    display: none;
+                }
+                .virtual-lab-4d-note {
+                    display: none;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .virtual-lab-4d-progress > span,
+                .virtual-lab-btn,
+                .virtual-lab-beaker-wrap {
+                    transition: none;
                 }
             }
         </style>
@@ -1656,9 +1854,10 @@ function generateVirtualLabToolContent() {
         <div class="virtual-lab-shell">
             <div class="virtual-lab-stage">
                 <div class="virtual-lab-scene" id="virtual-lab-scene">
+                    <div class="virtual-lab-depth-grid" aria-hidden="true"></div>
                     <div class="virtual-lab-particle-layer" id="virtual-lab-particle-layer" aria-hidden="true"></div>
                     <div class="virtual-lab-wooden-stand" id="virtual-lab-wooden-stand"></div>
-                    <div class="virtual-lab-metal-cube" id="virtual-lab-metal-cube"></div>
+                    <div class="virtual-lab-metal-cube" id="virtual-lab-metal-cube" role="button" tabindex="0" aria-label="${t("virtualLab.sampleAria", "Sodium sample. Drag into the beaker or press Enter to mix.")}"></div>
                     <div class="virtual-lab-beaker-wrap" id="virtual-lab-beaker-wrap" aria-label="${t("virtualLab.beakerAria", "Beaker")}">
                         <div class="virtual-lab-beaker">
                             <div class="virtual-lab-beaker-body" id="virtual-lab-beaker-body">
@@ -1689,6 +1888,35 @@ function generateVirtualLabToolContent() {
                         <div class="virtual-lab-thermo-temp" id="virtual-lab-thermo-temp">20°</div>
                         <div class="virtual-lab-thermo-label">TEMP</div>
                     </div>
+                    <aside class="virtual-lab-4d-hud" id="virtual-lab-4d-hud" aria-label="${t("virtualLab.fourDTitle", "4D reaction view")}">
+                        <div class="virtual-lab-4d-head">
+                            <strong class="virtual-lab-4d-title">${t("virtualLab.fourDTitle", "4D Reaction View")}</strong>
+                            <span class="virtual-lab-4d-live">${t("virtualLab.simulation", "Simulation")}</span>
+                        </div>
+                        <div class="virtual-lab-4d-readout">
+                            <div class="virtual-lab-4d-stat">
+                                <span>${t("virtualLab.sample", "Sample")}</span>
+                                <strong id="virtual-lab-hud-sample">Na · Sodium</strong>
+                            </div>
+                            <div class="virtual-lab-4d-stat">
+                                <span>${t("virtualLab.medium", "Medium")}</span>
+                                <strong>H₂O · Water</strong>
+                            </div>
+                            <div class="virtual-lab-4d-stat">
+                                <span>${t("virtualLab.time", "Time")}</span>
+                                <strong id="virtual-lab-hud-time">0.0 s</strong>
+                            </div>
+                        </div>
+                        <div class="virtual-lab-4d-progress" aria-hidden="true"><span id="virtual-lab-hud-progress"></span></div>
+                        <p class="virtual-lab-4d-phase" id="virtual-lab-hud-phase" aria-live="polite">${t("virtualLab.readyPhase", "Ready · add water, then drop in the sample")}</p>
+                        <div class="virtual-lab-4d-speed" aria-label="${t("virtualLab.timeControls", "Reaction time controls")}">
+                            <button class="virtual-lab-time-btn" id="virtual-lab-time-toggle" type="button" aria-label="${t("virtualLab.pause", "Pause reaction")}" aria-pressed="false">Ⅱ</button>
+                            <button class="virtual-lab-speed-btn" type="button" data-vlab-speed="0.5">0.5×</button>
+                            <button class="virtual-lab-speed-btn active" type="button" data-vlab-speed="1">1×</button>
+                            <button class="virtual-lab-speed-btn" type="button" data-vlab-speed="2">2×</button>
+                        </div>
+                        <p class="virtual-lab-4d-note">${t("virtualLab.safetyNote", "Curated educational model — never reproduce reactive-metal experiments outside a supervised laboratory.")}</p>
+                    </aside>
                     <div class="virtual-lab-controls">
                         <button class="virtual-lab-btn primary" id="virtual-lab-add-water-btn" type="button">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:6px"><path d="M12 5v14M5 12h14"/></svg>${t("virtualLab.addWater", "Add Water")}

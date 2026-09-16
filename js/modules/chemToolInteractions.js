@@ -830,6 +830,12 @@ function attachVirtualLabListeners() {
   const thermoFill = document.getElementById("virtual-lab-thermo-fill");
   const thermoTemp = document.getElementById("virtual-lab-thermo-temp");
   const reactionInfoBadge = document.getElementById("virtual-lab-reaction-info");
+  const hudSample = document.getElementById("virtual-lab-hud-sample");
+  const hudTime = document.getElementById("virtual-lab-hud-time");
+  const hudProgress = document.getElementById("virtual-lab-hud-progress");
+  const hudPhase = document.getElementById("virtual-lab-hud-phase");
+  const timeToggle = document.getElementById("virtual-lab-time-toggle");
+  const speedButtons = [...document.querySelectorAll("[data-vlab-speed]")];
   if (
     !scene ||
     !beakerWrap ||
@@ -870,6 +876,7 @@ function attachVirtualLabListeners() {
     prevY: 0,
     prevRot: 0,
     initialized: false,
+    lastFrameTime: 0,
   };
 
   // Metal cube state
@@ -938,6 +945,9 @@ function attachVirtualLabListeners() {
     bubbles: [],          // active bubble DOM elements
     cubeScale: 1,         // current visual scale of the cube
     lastElement: null,    // last element that started a reaction
+    elapsedMs: 0,         // fourth dimension: simulated reaction time
+    paused: false,
+    timeScale: 1,
   };
 
 
@@ -955,6 +965,7 @@ function attachVirtualLabListeners() {
     cubeEl.style.fontFamily = "'Inter', sans-serif";
     cubeEl.style.textShadow = '0 1px 2px rgba(0,0,0,0.25)';
     cubeEl.innerHTML = `<span style="color:${selectedElement.color};text-shadow:none;font-size:17px;font-weight:800">${selectedElement.sym}</span>`;
+    cubeEl.setAttribute("aria-label", `${selectedElement.name} sample. Drag into the beaker or press Enter to mix.`);
   }
 
   // ===== Reaction System Functions =====
@@ -997,6 +1008,7 @@ function attachVirtualLabListeners() {
       el,
       worldX: worldPos.x,
       worldY: worldPos.y,
+      depth: -36 + Math.random() * 72,
       vy: -(0.6 + Math.random() * 1.2),
       vx: (Math.random() - 0.5) * 0.4,
       life: 0,
@@ -1016,7 +1028,8 @@ function attachVirtualLabListeners() {
       b.worldY += b.vy;
       b.worldX += b.vx + Math.sin(b.life * 0.15) * 0.3;
       const fade = 1 - (b.life / b.maxLife);
-      b.el.style.transform = `translate3d(${b.worldX.toFixed(1)}px, ${b.worldY.toFixed(1)}px, 0)`;
+      const depthScale = 0.82 + ((b.depth + 36) / 72) * 0.34;
+      b.el.style.transform = `translate3d(${b.worldX.toFixed(1)}px, ${b.worldY.toFixed(1)}px, ${b.depth.toFixed(1)}px) scale(${depthScale.toFixed(2)})`;
       b.el.style.opacity = (fade * 0.7).toFixed(2);
       if (b.life >= b.maxLife || b.worldY < 0) {
         b.el.remove();
@@ -1026,21 +1039,30 @@ function attachVirtualLabListeners() {
   }
 
   /** Main per-frame reaction tick */
-  function tickReaction(metrics) {
+  function tickReaction(metrics, frameFactor = 1) {
     const data = REACTION_DATA[selectedElement.sym];
-    if (!data || data.rate === 0) {
-      // No reaction (e.g. Be) — cool down, clear state
-      if (rxn.active) {
-        rxn.active = false;
-        updateReactionInfo(data);
-      }
-      rxn.temperature = Math.max(20, rxn.temperature - 0.15);
-      updateThermometer();
-      tickBubbles(metrics);
+    const submerged = isCubeSubmerged(metrics);
+
+    if (rxn.paused) {
+      updateReactionHud(data, submerged);
       return;
     }
 
-    const submerged = isCubeSubmerged(metrics);
+    if (!data || data.rate === 0) {
+      // No reaction (e.g. Be) — show the observation once and cool down.
+      if (rxn.active) {
+        rxn.active = false;
+      }
+      if (submerged && rxn.lastElement !== selectedElement.sym) {
+        rxn.lastElement = selectedElement.sym;
+        updateReactionInfo(data);
+      }
+      rxn.temperature = Math.max(20, rxn.temperature - 0.15 * frameFactor);
+      updateThermometer();
+      tickBubbles(metrics);
+      updateReactionHud(data, submerged);
+      return;
+    }
 
     if (submerged && rxn.progress < 1) {
       // ---- REACTION IS HAPPENING ----
@@ -1051,15 +1073,17 @@ function attachVirtualLabListeners() {
       }
 
       // Advance progress
-      rxn.progress = Math.min(1, rxn.progress + data.rate);
+      rxn.progress = Math.min(1, rxn.progress + data.rate * frameFactor);
+      rxn.elapsedMs += (1000 / 60) * frameFactor;
 
       // Temperature rises toward target, capped at 100°C boiling point
       const targetTemp = 20 + data.heat * Math.min(rxn.progress * 3, 1);
-      rxn.temperature = Math.min(100, rxn.temperature + Math.max(0, (targetTemp - rxn.temperature) * 0.04));
+      const heatEase = 1 - Math.pow(0.96, frameFactor);
+      rxn.temperature = Math.min(100, rxn.temperature + Math.max(0, (targetTemp - rxn.temperature) * heatEase));
 
       // Boil off water molecules at 100°C
       if (rxn.temperature >= 99.5) {
-        if (Math.random() < 0.25) { // 25% chance per frame to lose a molecule to evaporation
+        if (Math.random() < 1 - Math.pow(0.75, frameFactor)) {
           const insideTokens = state.particles.filter(p => p.mode === 'inside');
           if (insideTokens.length > 0) {
             const pToBoil = insideTokens[Math.floor(Math.random() * insideTokens.length)];
@@ -1091,7 +1115,8 @@ function attachVirtualLabListeners() {
       }
 
       // Spawn bubbles based on reaction vigor
-      if (Math.random() < data.bubbleRate * (1 - rxn.progress * 0.7)) {
+      const bubbleChance = Math.min(0.98, data.bubbleRate * (1 - rxn.progress * 0.7));
+      if (Math.random() < 1 - Math.pow(1 - bubbleChance, frameFactor)) {
         spawnBubble(metrics);
       }
 
@@ -1134,10 +1159,10 @@ function attachVirtualLabListeners() {
     } else if (!submerged && rxn.active && rxn.progress < 1) {
       // Cube pulled out of water mid-reaction — reaction pauses
       // Temperature slowly cools
-      rxn.temperature = Math.max(20, rxn.temperature - 0.3);
+      rxn.temperature = Math.max(20, rxn.temperature - 0.3 * frameFactor);
     } else if (rxn.progress >= 1) {
       // Reaction complete — cool down
-      rxn.temperature = Math.max(20, rxn.temperature - 0.15);
+      rxn.temperature = Math.max(20, rxn.temperature - 0.15 * frameFactor);
       if (rxn.temperature <= 20.5 && rxn.active) {
         rxn.active = false;
       }
@@ -1145,6 +1170,7 @@ function attachVirtualLabListeners() {
 
     updateThermometer();
     tickBubbles(metrics);
+    updateReactionHud(data, submerged);
   }
 
   function applyCubeScale() {
@@ -1210,6 +1236,32 @@ function attachVirtualLabListeners() {
     }
   }
 
+  function reactionPhase(data, submerged) {
+    if (rxn.paused) return "Paused · resume to continue simulated time";
+    if (!state.particles.length) return "Ready · add water, then drop in the sample";
+    if (rxn.progress >= 1) return "Complete · reaction products remain in solution";
+    if (submerged && data?.rate === 0) return `Observe · ${selectedElement.name} shows no reaction with cold water`;
+    if (!submerged) return "Ready · drag the element sample below the water surface";
+    if (rxn.progress < 0.16) return "Contact · reactant particles begin colliding";
+    if (rxn.progress < 0.68) return "Reacting · hydrogen gas evolves as temperature changes";
+    return "Settling · sample is consumed and products disperse";
+  }
+
+  function updateReactionHud(data = REACTION_DATA[selectedElement.sym], submerged = false) {
+    if (hudSample) hudSample.textContent = `${selectedElement.sym} · ${selectedElement.name}`;
+    if (hudTime) hudTime.textContent = `${(rxn.elapsedMs / 1000).toFixed(1)} s`;
+    if (hudProgress) hudProgress.style.width = `${Math.round(rxn.progress * 100)}%`;
+    if (hudPhase) {
+      const nextPhase = reactionPhase(data, submerged);
+      if (hudPhase.textContent !== nextPhase) hudPhase.textContent = nextPhase;
+    }
+    if (timeToggle) {
+      timeToggle.textContent = rxn.paused ? "▶" : "Ⅱ";
+      timeToggle.setAttribute("aria-pressed", rxn.paused ? "true" : "false");
+      timeToggle.setAttribute("aria-label", rxn.paused ? "Resume reaction" : "Pause reaction");
+    }
+  }
+
   function updateReactionInfo(data) {
     if (!reactionInfoBadge) return;
     if (data && data.rate > 0 && rxn.active) {
@@ -1231,6 +1283,8 @@ function attachVirtualLabListeners() {
     rxn.waterTint = 0;
     rxn.cubeScale = 1;
     rxn.lastElement = null;
+    rxn.elapsedMs = 0;
+    rxn.paused = false;
     // Remove all bubbles
     rxn.bubbles.forEach(b => b.el.remove());
     rxn.bubbles = [];
@@ -1242,6 +1296,8 @@ function attachVirtualLabListeners() {
       cubeEl = document.createElement('div');
       cubeEl.className = 'virtual-lab-metal-cube';
       cubeEl.id = 'virtual-lab-metal-cube';
+      cubeEl.setAttribute('role', 'button');
+      cubeEl.tabIndex = 0;
       scene.appendChild(cubeEl);
     }
     cubeEl.style.opacity = '1';
@@ -1295,6 +1351,7 @@ function attachVirtualLabListeners() {
     });
     // Reset thermometer
     updateThermometer();
+    updateReactionHud();
       // Hide reaction badge
       if (reactionInfoBadge) reactionInfoBadge.classList.remove('active');
   }
@@ -1346,6 +1403,7 @@ function attachVirtualLabListeners() {
           selectedElement = found;
           resetReaction();
           updateCubeAppearance();
+          updateReactionHud();
         }
         closePicker();
       });
@@ -1508,14 +1566,17 @@ function attachVirtualLabListeners() {
   }
 
   function renderParticle(particle, metrics) {
+    const depth = particle.depth || 0;
+    const depthScale = 0.88 + ((depth + 48) / 96) * 0.24;
     if (particle.mode === "inside") {
       ensureParticleParent(particle, fluidLayer);
       const local = worldToFluid(particle.x, particle.y, metrics);
-      particle.el.style.transform = `translate3d(${(local.x - particle.r).toFixed(2)}px, ${(local.y + metrics.headroom - particle.r).toFixed(2)}px, 0)`;
+      particle.el.style.transform = `translate3d(${(local.x - particle.r).toFixed(2)}px, ${(local.y + metrics.headroom - particle.r).toFixed(2)}px, ${depth.toFixed(1)}px) scale(${depthScale.toFixed(2)})`;
     } else {
       ensureParticleParent(particle, spillLayer);
-      particle.el.style.transform = `translate3d(${(particle.x - particle.r).toFixed(2)}px, ${(particle.y - particle.r).toFixed(2)}px, 0)`;
+      particle.el.style.transform = `translate3d(${(particle.x - particle.r).toFixed(2)}px, ${(particle.y - particle.r).toFixed(2)}px, ${depth.toFixed(1)}px) scale(${depthScale.toFixed(2)})`;
     }
+    particle.el.style.opacity = (0.72 + ((depth + 48) / 96) * 0.28).toFixed(2);
     
     if (particle.mode !== "vapor") {
       const t = particle.tint || 0;
@@ -1546,6 +1607,7 @@ function attachVirtualLabListeners() {
       vy: velocity.vy ?? Math.random() * 0.08,
       r: metrics.radius,
       tint: 0,
+      depth: -48 + Math.random() * 96,
     };
     state.particles.push(particle);
     renderParticle(particle, metrics);
@@ -2097,7 +2159,10 @@ function attachVirtualLabListeners() {
     }
   }
 
-  function animate() {
+  function animate(timestamp = performance.now()) {
+    const elapsed = state.lastFrameTime ? timestamp - state.lastFrameTime : 1000 / 60;
+    state.lastFrameTime = timestamp;
+    const frameFactor = clamp(elapsed / (1000 / 60), 0.25, 3) * rxn.timeScale;
     const metrics = getCupMetrics();
     const sceneW = scene.offsetWidth || scene.clientWidth;
     const sceneH = scene.offsetHeight || scene.clientHeight;
@@ -2174,7 +2239,10 @@ function attachVirtualLabListeners() {
 
       // Reaction-based Jitter: adds tiny high-frequency noise when metal is reacting
       // Exponentially boost jitter for higher rates (like Fr) to feel more "violent"
-      const reactionIntensity = (rxn.active && rxn.progress < 1) ? Math.pow(rxn.rate * 800, 1.2) : 0;
+      const reactionRate = REACTION_DATA[selectedElement.sym]?.rate || 0;
+      const reactionIntensity = (rxn.active && !rxn.paused && rxn.progress < 1)
+        ? Math.pow(reactionRate * 800 * rxn.timeScale, 1.2)
+        : 0;
       if (reactionIntensity > 0.02) {
         const noise = (reactionIntensity * 1.4);
         p.vx += (Math.random() - 0.5) * noise;
@@ -2334,7 +2402,7 @@ function attachVirtualLabListeners() {
     }
 
     // ===== Chemical Reaction tick =====
-    tickReaction(metrics);
+    tickReaction(metrics, frameFactor);
 
     // Render cube position
     const renderCubeEl = document.getElementById("virtual-lab-metal-cube");
@@ -2423,7 +2491,24 @@ function attachVirtualLabListeners() {
 
   addWaterBtn.addEventListener("click", () => {
     addWaterBurst();
+    updateReactionHud();
   }, { signal });
+
+  if (timeToggle) {
+    timeToggle.addEventListener("click", () => {
+      rxn.paused = !rxn.paused;
+      updateReactionHud(REACTION_DATA[selectedElement.sym], isCubeSubmerged(getCupMetrics()));
+    }, { signal });
+  }
+
+  speedButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const speed = Number(button.dataset.vlabSpeed);
+      if (!Number.isFinite(speed) || speed <= 0) return;
+      rxn.timeScale = speed;
+      speedButtons.forEach((candidate) => candidate.classList.toggle("active", candidate === button));
+    }, { signal });
+  });
 
   clearWaterBtn.addEventListener("click", () => {
     // Full page reset
@@ -2474,6 +2559,21 @@ function attachVirtualLabListeners() {
         cubeElement.setPointerCapture(e.pointerId);
       }
     });
+    if (cubeElement.dataset.keyboardBound !== "true") {
+      cubeElement.dataset.keyboardBound = "true";
+      cubeElement.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        if (!matterCubeBody || !MatterLib || rxn.progress >= 1) return;
+        const metrics = getCupMetrics();
+        const dropPoint = fluidToWorld(metrics.width * 0.5, metrics.height * 0.68, metrics);
+        cube.insideBeaker = true;
+        cube.targetX = dropPoint.x;
+        cube.targetY = dropPoint.y;
+        MatterLib.Body.setPosition(matterCubeBody, dropPoint);
+        MatterLib.Body.setVelocity(matterCubeBody, { x: 0, y: 0 });
+      }, { signal });
+    }
   }
 
   if (metalCube) {
@@ -2531,6 +2631,7 @@ function attachVirtualLabListeners() {
     initMatterPhysics();
     updateCubeAppearance();
     updateThermometer();
+    updateReactionHud();
   }
 
   handleResize();

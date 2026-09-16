@@ -977,7 +977,7 @@ function startSolubilityTour(driver, tutorialKey, delayMs = 800) {
  * Initializes and triggers the Virtual Lab tool tutorial.
  */
 export async function initVirtualLabTutorial(force = false) {
-    const tutorialKey = 'hasSeenVirtualLabTutorialV1';
+    const tutorialKey = 'hasSeenVirtualLabTutorialV2';
 
     if (!force && localStorage.getItem(tutorialKey)) {
         return;
@@ -1049,9 +1049,18 @@ function startVirtualLabTour(driver, tutorialKey, delayMs = 800) {
                 {
                     element: '#virtual-lab-scene',
                     popover: {
-                        title: t('virtualLabTutorial.sceneTitle', 'Virtual Chemistry Lab'),
-                        description: t('virtualLabTutorial.sceneDesc', 'Welcome to the Virtual Lab! This is an interactive physics-based playground where you can test the reactivity of different metals.'),
+                        title: t('virtualLabTutorial.sceneTitle', '4D Reaction Studio'),
+                        description: t('virtualLabTutorial.sceneDesc', 'Explore a curated metal-and-water model in three-dimensional depth, then follow how the reaction changes over simulated time.'),
                         side: 'bottom',
+                        align: 'center'
+                    }
+                },
+                {
+                    element: '#virtual-lab-4d-hud',
+                    popover: {
+                        title: t('virtualLabTutorial.fourDTitle', 'Space + Time'),
+                        description: t('virtualLabTutorial.fourDDesc', 'Track the selected sample, reaction stage, progress, and elapsed simulation time. Pause the reaction or compare it at 0.5×, 1×, and 2× speed.'),
+                        side: 'left',
                         align: 'center'
                     }
                 },
@@ -1068,7 +1077,7 @@ function startVirtualLabTour(driver, tutorialKey, delayMs = 800) {
                     element: '#virtual-lab-metal-cube',
                     popover: {
                         title: t('virtualLabTutorial.metalTitle', 'The Metal Sample'),
-                        description: t('virtualLabTutorial.metalDesc', 'Grab this metal cube and drop it into the water to see a reaction. Some elements react more violently than others!'),
+                        description: t('virtualLabTutorial.metalDesc', 'Grab the sample and drop it below the water surface. The model shows reaction rate, gas evolution, sample consumption, and heat over time.'),
                         side: 'left',
                         align: 'center'
                     }
@@ -1077,7 +1086,7 @@ function startVirtualLabTour(driver, tutorialKey, delayMs = 800) {
                     element: '#virtual-lab-change-element-btn',
                     popover: {
                         title: t('virtualLabTutorial.elementPickerTitle', 'Change Element'),
-                        description: t('virtualLabTutorial.elementPickerDesc', 'Click here to choose a different metal to test. Try comparing Alkali metals with Alkaline Earth metals.'),
+                        description: t('virtualLabTutorial.elementPickerDesc', 'Compare curated alkali and alkaline-earth metals. This is an educational model, not a safety guide or an instruction to reproduce the reaction.'),
                         side: 'top',
                         align: 'center'
                     }
