@@ -35,6 +35,18 @@ function isRealMobileDevice() {
   return hasCoarsePointer && (mobileUA || isIPad);
 }
 
+// Host pages (e.g. the EASI museum iframe) mark the document before this
+// script runs so kiosk embeds can skip onboarding/welcome/changelog gating
+// below without depending on any ONBOARDING_VERSION/CURRENT_VERSION string
+// staying in sync with a value hardcoded in the embedding page.
+function isEasiEmbed() {
+  try {
+    return document.documentElement.hasAttribute("data-easi-embed");
+  } catch (e) {
+    return false;
+  }
+}
+
 
 // ========================================
 // Welcome Modal - Intro Page
@@ -522,20 +534,26 @@ function bootstrapApp() {
     return;
   }
 
-  // Release-gated onboarding: force-show the intro animation once per release.
-  const ONBOARDING_VERSION = "2.0.1";
-  const seenOnboardingVersion = localStorage.getItem("zperiod_onboarding_seen_version");
-  if (seenOnboardingVersion !== ONBOARDING_VERSION) {
-    localStorage.setItem("zperiod_onboarding_seen_version", ONBOARDING_VERSION);
-    localStorage.removeItem("zperiod_welcomed_v2");
-  }
+  if (!isEasiEmbed()) {
+    // Release-gated onboarding: force-show the intro animation once per release.
+    const ONBOARDING_VERSION = "2.0.1";
+    const seenOnboardingVersion = localStorage.getItem("zperiod_onboarding_seen_version");
+    if (seenOnboardingVersion !== ONBOARDING_VERSION) {
+      localStorage.setItem("zperiod_onboarding_seen_version", ONBOARDING_VERSION);
+      localStorage.removeItem("zperiod_welcomed_v2");
+    }
 
-  if (!localStorage.getItem("zperiod_welcomed_v2")) {
-    initOnboardingFlow();
-    return;
-  }
+    if (!localStorage.getItem("zperiod_welcomed_v2")) {
+      initOnboardingFlow();
+      return;
+    }
 
-  initWelcomeModal();
+    initWelcomeModal();
+  }
+  // Kiosk embeds (data-easi-embed) skip onboarding/welcome/changelog entirely
+  // and fall straight through to building the table below, regardless of
+  // any release-version bump — this must never depend on the host page
+  // guessing a matching version string.
 
 
   // Version Dropdown Logic
