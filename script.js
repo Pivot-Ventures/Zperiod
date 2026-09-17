@@ -1,5 +1,8 @@
 import { getChemToolContent } from "./js/modules/chemToolContent.js";
-import { attachToolEventListeners } from "./js/modules/chemToolInteractions.js";
+import {
+  attachToolEventListeners,
+  cleanupToolEventListeners,
+} from "./js/modules/chemToolInteractions.js";
 import {
   buildPeriodicTable,
   initModalUI,
@@ -642,6 +645,7 @@ function bootstrapApp() {
   const toolsModalController = createToolsModalController({
     getToolContent: getChemToolContent,
     attachToolEventListeners,
+    cleanupToolEventListeners,
   });
   toolsModalController.init();
 

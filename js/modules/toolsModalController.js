@@ -25,7 +25,11 @@ function getToolHelpMarkup(toolType) {
 }
 
 export function createToolsModalController(options = {}) {
-  const { getToolContent, attachToolEventListeners } = options;
+  const {
+    getToolContent,
+    attachToolEventListeners,
+    cleanupToolEventListeners,
+  } = options;
 
   let modalHandlersInitialized = false;
   const toolContentCache = new Map();
@@ -70,6 +74,9 @@ export function createToolsModalController(options = {}) {
     const { modal, helpOverlay } = getModalElements();
     if (!modal) return;
     openRequestToken += 1;
+    if (typeof cleanupToolEventListeners === "function") {
+      cleanupToolEventListeners(activeToolType);
+    }
     activeToolType = null;
     modal.classList.remove("active");
     document.body.classList.remove("hide-nav");
@@ -138,6 +145,9 @@ export function createToolsModalController(options = {}) {
       return;
     }
 
+    if (typeof cleanupToolEventListeners === "function") {
+      cleanupToolEventListeners(activeToolType);
+    }
     activeToolType = toolType;
     modal.classList.add("active");
     document.body.classList.add("hide-nav");
@@ -155,6 +165,7 @@ export function createToolsModalController(options = {}) {
 
       if (typeof attachToolEventListeners === "function") {
         requestAnimationFrame(() => {
+          if (requestToken !== openRequestToken || activeToolType !== toolType) return;
           attachToolEventListeners(toolType);
           
           if (toolType === "balancer") {

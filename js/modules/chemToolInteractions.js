@@ -29,7 +29,16 @@ const TOOL_LISTENER_MAP = {
 
 let virtualLabCleanup = null;
 
+export function cleanupToolEventListeners(toolType) {
+  if (toolType && toolType !== "virtual-lab") return;
+  if (typeof virtualLabCleanup === "function") {
+    virtualLabCleanup();
+    virtualLabCleanup = null;
+  }
+}
+
 export function attachToolEventListeners(toolType) {
+  cleanupToolEventListeners();
   TOOL_LISTENER_MAP[toolType]?.();
 }
 
@@ -818,11 +827,6 @@ function attachMolarMassListeners() {
 }
 
 function attachVirtualLabListeners() {
-  if (typeof virtualLabCleanup === "function") {
-    virtualLabCleanup();
-    virtualLabCleanup = null;
-  }
-
   const scene = document.getElementById("virtual-lab-scene");
   const beakerWrap = document.getElementById("virtual-lab-beaker-wrap");
   const beakerBody = document.getElementById("virtual-lab-beaker-body");
