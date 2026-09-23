@@ -4,6 +4,12 @@
 
 import { onLangChange, t } from "./langController.js";
 
+function shouldAutoStartTutorial() {
+  const embedded = document.documentElement.hasAttribute("data-easi-embed")
+    || new URLSearchParams(window.location.search).get("embed") === "1";
+  return !embedded;
+}
+
 function getToolHelpMarkup(toolType) {
   if (toolType === "balancer") {
     return `
@@ -167,6 +173,10 @@ export function createToolsModalController(options = {}) {
         requestAnimationFrame(() => {
           if (requestToken !== openRequestToken || activeToolType !== toolType) return;
           attachToolEventListeners(toolType);
+          // Museum iframes are intentionally compact. Auto-starting Driver.js
+          // covers the apparatus and can look frozen while its CDN loads.
+          // Help (?) still starts the same tutorial explicitly.
+          if (!shouldAutoStartTutorial()) return;
           
           if (toolType === "balancer") {
             import("./tutorialController.js").then((m) => m.initBalancerTutorial(false));

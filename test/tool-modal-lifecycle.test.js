@@ -28,3 +28,11 @@ test("application passes cleanup into the modal controller", () => {
   const app = read("script.js");
   assert.match(app, /createToolsModalController\(\{[\s\S]*cleanupToolEventListeners/);
 });
+
+test("museum embeds never auto-cover the lab with a tutorial", () => {
+  const controller = read("js/modules/toolsModalController.js");
+  assert.match(controller, /function shouldAutoStartTutorial/);
+  assert.match(controller, /data-easi-embed/);
+  assert.match(controller, /get\("embed"\) === "1"/);
+  assert.match(controller, /if \(!shouldAutoStartTutorial\(\)\) return/);
+});
